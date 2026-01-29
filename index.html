@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitCore - Gym Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF4500;
+            --primary-dark: #CC3700;
+            --secondary: #000000;
+            --accent: #FFD700;
+            --bg: #0A0A0A;
+            --bg-card: #151515;
+            --text: #FFFFFF;
+            --text-dim: #999999;
+            --success: #00FF88;
+            --danger: #FF0055;
+            --border: #2A2A2A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Archivo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 49.5%, rgba(255, 69, 0, 0.03) 50%, transparent 50.5%),
+                linear-gradient(0deg, transparent 49.5%, rgba(255, 69, 0, 0.03) 50%, transparent 50.5%);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+        }
+
+        .nav-tab:hover::before,
+        .nav-tab.active::before {
+            left: 0;
+        }
+
+        .nav-tab:hover,
+        .nav-tab.active {
+            color: var(--text);
+            border-color: var(--primary);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            transform: scaleY(0);
+            transform-origin: bottom;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover::after {
+            transform: scaleY(1);
+            transform-origin: top;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            letter-spacing: 2px;
+            color: var(--text);
+        }
+
+        .stat-change {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 36px;
+            letter-spacing: 3px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 28px;
+            background: var(--primary);
+            color: var(--text);
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 69, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            color: var(--text);
+            box-shadow: none;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: rgba(255, 69, 0, 0.1);
+        }
+
+        .data-table th {
+            padding: 20px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .data-table td {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 69, 0, 0.05);
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 0;
+        }
+
+        .badge-active {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .badge-expired {
+            background: rgba(255, 0, 85, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .badge-pending {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-input,
+        .form-select {
+            padding: 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 16px;
+            font-family: 'Archivo', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .modal-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            letter-spacing: 3px;
+        }
+
+        .close-btn {
+            font-size: 32px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        /* Actions */
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--text);
+        }
+
+        /* Schedule Grid */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .schedule-day {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .day-header {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .class-item {
+            background: rgba(255, 69, 0, 0.1);
+            border-left: 3px solid var(--primary);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .class-time {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .class-name {
+            color: var(--text);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 32px;
+            }
+
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">FITCORE</div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">Dashboard</button>
+                <button class="nav-tab" onclick="switchTab('members')">Members</button>
+                <button class="nav-tab" onclick="switchTab('classes')">Classes</button>
+                <button class="nav-tab" onclick="switchTab('payments')">Payments</button>
+            </nav>
+        </header>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Members</div>
+                    <div class="stat-value" id="totalMembers">0</div>
+                    <div class="stat-change positive">↑ 12% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Members</div>
+                    <div class="stat-value" id="activeMembers">0</div>
+                    <div class="stat-change positive">↑ 8% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Monthly Revenue</div>
+                    <div class="stat-value" id="monthlyRevenue">$0</div>
+                    <div class="stat-change positive">↑ 15% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Classes</div>
+                    <div class="stat-value" id="activeClasses">0</div>
+                    <div class="stat-change positive">↑ 3 new classes</div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <h2 class="section-title">Weekly Schedule</h2>
+            </div>
+
+            <div class="schedule-grid">
+                <div class="schedule-day">
+                    <div class="day-header">Monday</div>
+                    <div class="class-item">
+                        <div class="class-time">06:00 AM</div>
+                        <div class="class-name">Morning Yoga</div>
+                    </div>
+                    <div class="class-item">
+                        <div class="class-time">07:00 PM</div>
+                        <div class="class-name">HIIT Training</div>
+                    </div>
+                </div>
+                <div class="schedule-day">
+                    <div class="day-header">Tuesday</div>
+                    <div class="class-item">
+                        <div class="class-time">06:30 AM</div>
+                        <div class="class-name">Spin Class</div>
+                    </div>
+                    <div class="class-item">
+                        <div class="class-time">06:00 PM</div>
+                        <div class="class-name">Boxing</div>
+                    </div>
+                </div>
+                <div class="schedule-day">
+                    <div class="day-header">Wednesday</div>
+                    <div class="class-item">
+                        <div class="class-time">06:00 AM</div>
+                        <div class="class-name">Pilates</div>
+                    </div>
+                    <div class="class-item">
+                        <div class="class-time">07:00 PM</div>
+                        <div class="class-name">CrossFit</div>
+                    </div>
+                </div>
+                <div class="schedule-day">
+                    <div class="day-header">Thursday</div>
+                    <div class="class-item">
+                        <div class="class-time">06:30 AM</div>
+                        <div class="class-name">Zumba</div>
+                    </div>
+                    <div class="class-item">
+                        <div class="class-time">06:00 PM</div>
+                        <div class="class-name">Strength Training</div>
+                    </div>
+                </div>
+                <div class="schedule-day">
+                    <div class="day-header">Friday</div>
+                    <div class="class-item">
+                        <div class="class-time">06:00 AM</div>
+                        <div class="class-name">Morning Yoga</div>
+                    </div>
+                    <div class="class-item">
+                        <div class="class-time">07:00 PM</div>
+                        <div class="class-name">HIIT Training</div>
+                    </div>
+                </div>
+                <div class="schedule-day">
+                    <div class="day-header">Saturday</div>
+                    <div class="class-item">
+                        <div class="class-time">08:00 AM</div>
+                        <div class="class-name">Boot Camp</div>
+                    </div>
+                    <div class="class-item">
+                        <div class="class-time">10:00 AM</div>
+                        <div class="class-name">Family Yoga</div>
+                    </div>
+                </div>
+                <div class="schedule-day">
+                    <div class="day-header">Sunday</div>
+                    <div class="class-item">
+                        <div class="class-time">09:00 AM</div>
+                        <div class="class-name">Meditation</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Tab -->
+        <div id="members" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title">Member Management</h2>
+                <button class="btn" onclick="openModal('addMember')">+ Add Member</button>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Member ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Membership Type</th>
+                        <th>Status</th>
+                        <th>Join Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTableBody">
+                    <!-- Members will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Classes Tab -->
+        <div id="classes" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title">Class Management</h2>
+                <button class="btn" onclick="openModal('addClass')">+ Add Class</button>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Class Name</th>
+                        <th>Instructor</th>
+                        <th>Schedule</th>
+                        <th>Duration</th>
+                        <th>Capacity</th>
+                        <th>Enrolled</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="classesTableBody">
+                    <!-- Classes will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="payments" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title">Payment History</h2>
+                <button class="btn" onclick="openModal('addPayment')">+ Record Payment</button>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Member Name</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsTableBody">
+                    <!-- Payments will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="addMemberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Member</h3>
+                <span class="close-btn" onclick="closeModal('addMember')">&times;</span>
+            </div>
+            <form onsubmit="addMember(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" id="memberName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="memberEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-input" id="memberPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Membership Type</label>
+                        <select class="form-select" id="membershipType" required>
+                            <option value="">Select Type</option>
+                            <option value="Basic">Basic - $29/month</option>
+                            <option value="Premium">Premium - $49/month</option>
+                            <option value="Elite">Elite - $79/month</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Add Member</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Class Modal -->
+    <div id="addClassModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Class</h3>
+                <span class="close-btn" onclick="closeModal('addClass')">&times;</span>
+            </div>
+            <form onsubmit="addClass(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Class Name</label>
+                        <input type="text" class="form-input" id="className" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Instructor</label>
+                        <input type="text" class="form-input" id="classInstructor" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Day</label>
+                        <select class="form-select" id="classDay" required>
+                            <option value="">Select Day</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Time</label>
+                        <input type="time" class="form-input" id="classTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duration (minutes)</label>
+                        <input type="number" class="form-input" id="classDuration" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Capacity</label>
+                        <input type="number" class="form-input" id="classCapacity" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Add Class</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Payment Modal -->
+    <div id="addPaymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Record Payment</h3>
+                <span class="close-btn" onclick="closeModal('addPayment')">&times;</span>
+            </div>
+            <form onsubmit="addPayment(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Member</label>
+                        <select class="form-select" id="paymentMember" required>
+                            <option value="">Select Member</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-input" id="paymentAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Type</label>
+                        <select class="form-select" id="paymentType" required>
+                            <option value="">Select Type</option>
+                            <option value="Membership">Membership Fee</option>
+                            <option value="Personal Training">Personal Training</option>
+                            <option value="Class">Class Fee</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <select class="form-select" id="paymentMethod" required>
+                            <option value="">Select Method</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Credit/Debit Card</option>
+                            <option value="Online">Online Transfer</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Record Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let members = [];
+        let classes = [];
+        let payments = [];
+
+        // Load sample data
+        function loadSampleData() {
+            members = [
+                { id: 'M001', name: 'John Smith', email: 'john@email.com', phone: '555-0101', type: 'Premium', status: 'Active', joinDate: '2024-01-15' },
+                { id: 'M002', name: 'Sarah Johnson', email: 'sarah@email.com', phone: '555-0102', type: 'Elite', status: 'Active', joinDate: '2024-02-20' },
+                { id: 'M003', name: 'Mike Davis', email: 'mike@email.com', phone: '555-0103', type: 'Basic', status: 'Active', joinDate: '2024-03-10' },
+                { id: 'M004', name: 'Emily Wilson', email: 'emily@email.com', phone: '555-0104', type: 'Premium', status: 'Expired', joinDate: '2023-12-05' }
+            ];
+
+            classes = [
+                { name: 'Morning Yoga', instructor: 'Lisa Anderson', day: 'Monday', time: '06:00', duration: 60, capacity: 20, enrolled: 15 },
+                { name: 'HIIT Training', instructor: 'Mark Thompson', day: 'Monday', time: '19:00', duration: 45, capacity: 15, enrolled: 12 },
+                { name: 'Spin Class', instructor: 'Rachel Green', day: 'Tuesday', time: '06:30', duration: 50, capacity: 25, enrolled: 20 },
+                { name: 'Boxing', instructor: 'Tom Cruz', day: 'Tuesday', time: '18:00', duration: 60, capacity: 12, enrolled: 10 }
+            ];
+
+            payments = [
+                { id: 'P001', memberName: 'John Smith', amount: 49, date: '2025-01-01', type: 'Membership', status: 'Completed' },
+                { id: 'P002', memberName: 'Sarah Johnson', amount: 79, date: '2025-01-05', type: 'Membership', status: 'Completed' },
+                { id: 'P003', memberName: 'Mike Davis', amount: 29, date: '2025-01-10', type: 'Membership', status: 'Pending' }
+            ];
+
+            updateDashboard();
+            renderMembers();
+            renderClasses();
+            renderPayments();
+            updatePaymentMemberDropdown();
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Modal Functions
+        function openModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.add('active');
+        }
+
+        function closeModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.remove('active');
+        }
+
+        // Dashboard
+        function updateDashboard() {
+            const activeMembers = members.filter(m => m.status === 'Active').length;
+            const revenue = payments.reduce((sum, p) => sum + (p.status === 'Completed' ? p.amount : 0), 0);
+            
+            document.getElementById('totalMembers').textContent = members.length;
+            document.getElementById('activeMembers').textContent = activeMembers;
+            document.getElementById('monthlyRevenue').textContent = '$' + revenue.toLocaleString();
+            document.getElementById('activeClasses').textContent = classes.length;
+        }
+
+        // Members
+        function renderMembers() {
+            const tbody = document.getElementById('membersTableBody');
+            tbody.innerHTML = members.map(member => `
+                <tr>
+                    <td><strong>${member.id}</strong></td>
+                    <td>${member.name}</td>
+                    <td>${member.email}</td>
+                    <td>${member.phone}</td>
+                    <td>${member.type}</td>
+                    <td><span class="badge badge-${member.status.toLowerCase()}">${member.status}</span></td>
+                    <td>${member.joinDate}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="icon-btn" onclick="editMember('${member.id}')">Edit</button>
+                            <button class="icon-btn" onclick="deleteMember('${member.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addMember(event) {
+            event.preventDefault();
+            const newMember = {
+                id: 'M' + String(members.length + 1).padStart(3, '0'),
+                name: document.getElementById('memberName').value,
+                email: document.getElementById('memberEmail').value,
+                phone: document.getElementById('memberPhone').value,
+                type: document.getElementById('membershipType').value,
+                status: 'Active',
+                joinDate: new Date().toISOString().split('T')[0]
+            };
+            
+            members.push(newMember);
+            renderMembers();
+            updateDashboard();
+            updatePaymentMemberDropdown();
+            closeModal('addMember');
+            event.target.reset();
+        }
+
+        function deleteMember(id) {
+            if (confirm('Are you sure you want to delete this member?')) {
+                members = members.filter(m => m.id !== id);
+                renderMembers();
+                updateDashboard();
+                updatePaymentMemberDropdown();
+            }
+        }
+
+        // Classes
+        function renderClasses() {
+            const tbody = document.getElementById('classesTableBody');
+            tbody.innerHTML = classes.map(cls => `
+                <tr>
+                    <td><strong>${cls.name}</strong></td>
+                    <td>${cls.instructor}</td>
+                    <td>${cls.day} ${cls.time}</td>
+                    <td>${cls.duration} min</td>
+                    <td>${cls.capacity}</td>
+                    <td>${cls.enrolled}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="icon-btn" onclick="editClass('${cls.name}')">Edit</button>
+                            <button class="icon-btn" onclick="deleteClass('${cls.name}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addClass(event) {
+            event.preventDefault();
+            const newClass = {
+                name: document.getElementById('className').value,
+                instructor: document.getElementById('classInstructor').value,
+                day: document.getElementById('classDay').value,
+                time: document.getElementById('classTime').value,
+                duration: parseInt(document.getElementById('classDuration').value),
+                capacity: parseInt(document.getElementById('classCapacity').value),
+                enrolled: 0
+            };
+            
+            classes.push(newClass);
+            renderClasses();
+            updateDashboard();
+            closeModal('addClass');
+            event.target.reset();
+        }
+
+        function deleteClass(name) {
+            if (confirm('Are you sure you want to delete this class?')) {
+                classes = classes.filter(c => c.name !== name);
+                renderClasses();
+                updateDashboard();
+            }
+        }
+
+        // Payments
+        function renderPayments() {
+            const tbody = document.getElementById('paymentsTableBody');
+            tbody.innerHTML = payments.map(payment => `
+                <tr>
+                    <td><strong>${payment.id}</strong></td>
+                    <td>${payment.memberName}</td>
+                    <td>$${payment.amount}</td>
+                    <td>${payment.date}</td>
+                    <td>${payment.type}</td>
+                    <td><span class="badge badge-${payment.status.toLowerCase()}">${payment.status}</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="icon-btn" onclick="viewPayment('${payment.id}')">View</button>
+                            <button class="icon-btn" onclick="deletePayment('${payment.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updatePaymentMemberDropdown() {
+            const select = document.getElementById('paymentMember');
+            select.innerHTML = '<option value="">Select Member</option>' + 
+                members.map(m => `<option value="${m.name}">${m.name} (${m.id})</option>`).join('');
+        }
+
+        function addPayment(event) {
+            event.preventDefault();
+            const newPayment = {
+                id: 'P' + String(payments.length + 1).padStart(3, '0'),
+                memberName: document.getElementById('paymentMember').value,
+                amount: parseFloat(document.getElementById('paymentAmount').value),
+                date: new Date().toISOString().split('T')[0],
+                type: document.getElementById('paymentType').value,
+                status: 'Completed'
+            };
+            
+            payments.push(newPayment);
+            renderPayments();
+            updateDashboard();
+            closeModal('addPayment');
+            event.target.reset();
+        }
+
+        function deletePayment(id) {
+            if (confirm('Are you sure you want to delete this payment record?')) {
+                payments = payments.filter(p => p.id !== id);
+                renderPayments();
+                updateDashboard();
+            }
+        }
+
+        // Initialize
+        loadSampleData();
+    </script>
+</body>
+</html>
